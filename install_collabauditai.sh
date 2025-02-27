@@ -15,7 +15,7 @@ cd /usr/local/src/CollabAuditAI || { echo "[ERROR] Failed to enter installation 
 
 # Step 2: Get Package ID from User
 while true; do
-    echo "[CollabAuditAI] Please enter the package ID provided by the CollabAuditAI team:"
+    echo "[CollabAuditAI] Enter the package ID provided by the CollabAuditAI team:"
     read -r PACKAGE_ID
     if [[ -z "$PACKAGE_ID" ]]; then
         echo "[ERROR] Package ID cannot be empty! Please enter a valid package ID."
@@ -83,7 +83,7 @@ echo "Please update the .env file with IMAGE_TAG and IMAGE_NAME provided by the 
 
 while true; do
     sudo nano .env
-    echo "[CollabAuditAI] Have you updated the .env file? (yes/no)"
+    echo "[CollabAuditAI] Confirm that you have updated the .env file (yes/no):"
     read -r RESPONSE
     if [[ "$RESPONSE" == "yes" ]]; then
         break
@@ -94,20 +94,18 @@ done
 
 # Step 12: Deploy Application
 echo "[CollabAuditAI] Starting deployment..."
-while true; do
-    echo "Please enter the token provided by the CollabAuditAI team:"
-    read -r TOKEN
-    if [[ -z "$TOKEN" ]]; then
-        echo "[ERROR] Token cannot be empty! Please enter a valid token."
-    else
-        sudo ./deploy.sh "$TOKEN"
-        check_success "Deployment failed. Please check the token and try again."
-        break
-    fi
-done
+
+echo "[CollabAuditAI] Enter the token provided by the CollabAuditAI team:"
+read -rs TOKEN  # The '-s' flag hides input
+if [[ -z "$TOKEN" ]]; then
+    echo "[ERROR] Token cannot be empty! Please enter a valid token."
+    exit 1
+fi
+
+sudo ./deploy.sh "$TOKEN"
+check_success "Deployment failed. Please check the token and try again."
 
 # Step 13: Final Message
 echo "[CollabAuditAI] Installation completed successfully!"
 echo "Please refer to the provided documentation to configure the required inbound port rules."
 echo "Once configured, you can access the CollabAuditAI application."
-
