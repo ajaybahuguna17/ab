@@ -88,6 +88,9 @@ done
 echo "[CollabAuditAI] Starting deployment..."
 echo "[CollabAuditAI] Please follow the prompts in deploy.sh for the next steps."
 sudo ./deploy.sh
+# Step 12.1: Check Running Docker Containers
+echo "[CollabAuditAI] Checking running Docker containers..."
+sudo docker ps
 
 # Step 13: Final Message
 echo "[CollabAuditAI] Installation completed successfully!"
