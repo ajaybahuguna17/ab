@@ -38,10 +38,10 @@ openssl dgst -sha256 -verify public_key.pem -signature CollabAuditAI_Package.tar
 
 # Check the verification status
 if [ $? -eq 0 ]; then
-    echo "[SUCCESS] Signature verification passed. Extracting the main package..."
+    echo "[SUCCESS] Package integrity verified. No tampering detected. Extracting the main package..."
     tar -xvf CollabAuditAI_Package.tar
 else
-    echo "[ERROR] Signature verification failed! Exiting..."
+    echo "[ERROR] Signature verification failed! The package may have been tampered with. Exiting..."
     exit 1
 fi
 
