@@ -18,6 +18,14 @@ fi
 echo "[INFO] Extracting package..."
 tar -xvf CollabAuditAI_Signed.tar
 
+# Add a small delay to ensure files are fully written
+sleep 2
+
+# Debugging: Print current directory and list files
+echo "[DEBUG] Current directory: $(pwd)"
+echo "[DEBUG] Files in current directory:"
+ls -lt
+
 # Validate required files are present
 if [[ ! -f "CollabAuditAI_Package.tar.sig" || ! -f "public_key.pem" || ! -f "CollabAuditAI_Package.tar" ]]; then
     echo "[ERROR] Missing verification files. Exiting..."
