@@ -1,48 +1,32 @@
 #!/bin/bash
 
-# Step 1: Create the Installation Directory
-echo "[CollabAuditAI] Creating installation directory..."
-sudo mkdir -p /usr/local/src/CollabAuditAI
-cd /usr/local/src/CollabAuditAI || { echo "[ERROR] Failed to enter installation directory. Exiting..."; exit 1; }
+INSTALL_DIR="/usr/local/src/CollabAuditAI"
 
-# Step 2: Get Package ID from User (with 3 attempts)
-attempt=0
-max_attempts=3
+# Step 1: Create installation directory
+echo "[CollabAuditAI] Creating installation directory at $INSTALL_DIR..."
+sudo mkdir -p "$INSTALL_DIR"
+cd "$INSTALL_DIR" || { echo "[ERROR] Failed to enter installation directory. Exiting..."; exit 1; }
 
-while [[ $attempt -lt $max_attempts ]]; do
-    echo "[CollabAuditAI] Enter Package ID:"
-    read -r PACKAGE_ID
+# Step 2: Prompt for Package ID
+echo "[CollabAuditAI] Enter Package ID:"
+read PACKAGE_ID
 
-    if [[ -n "$PACKAGE_ID" ]]; then
-        break  # Exit loop if valid input is provided
-    fi
+# Step 3: Download the package inside the installation directory
+echo "[INFO] Downloading package to $INSTALL_DIR..."
+wget --no-check-certificate "https://drive.google.com/uc?export=download&id=$PACKAGE_ID" -O CollabAuditAI_Signature.tar
 
-    attempt=$((attempt + 1))
-    echo "[ERROR] Package ID cannot be empty. Attempts left: $((max_attempts - attempt))"
-done
-
-# If max attempts are reached, exit the script
-if [[ -z "$PACKAGE_ID" ]]; then
-    echo "[ERROR] Maximum attempts reached. Exiting..."
-    exit 1
-fi
-
-# Step 3: Download Package
-echo "[INFO] Downloading package..."
-sudo wget --no-check-certificate "https://drive.google.com/uc?export=download&id=$PACKAGE_ID" -O CollabAuditAI_Signed.tar
-
-# Step 4: Check if the package downloaded successfully
-if [ ! -f "CollabAuditAI_Signed.tar" ]; then
+# Step 4: Verify if package was downloaded
+if [ ! -f "CollabAuditAI_Signature.tar" ]; then
     echo "[ERROR] Package download failed. Exiting..."
     exit 1
 fi
 
-# Step 5: Extract the downloaded TAR file
+# Step 5: Extract the downloaded TAR file inside the installation directory
 echo "[INFO] Extracting package..."
-sudo tar -xvf CollabAuditAI_Signed.tar
+tar -xvf CollabAuditAI_Signature.tar
 
-# Step 6: Validate required verification files are present
-if [[ ! -f "CollabAuditAI_Package.tar.sig" || ! -f "public_key.pem" || ! -f "CollabAuditAI_Package.tar" ]]; then
+# Step 6: Check for required verification files
+if [[ ! -f "CollabAuditAI_Package.tar" || ! -f "CollabAuditAI_Package.tar.sig" || ! -f "public_key.pem" ]]; then
     echo "[ERROR] Missing verification files. Exiting..."
     exit 1
 fi
@@ -51,52 +35,49 @@ fi
 echo "[INFO] Verifying package integrity..."
 openssl dgst -sha256 -verify public_key.pem -signature CollabAuditAI_Package.tar.sig CollabAuditAI_Package.tar
 
-# Step 8: Check the verification status
-if [ $? -eq 0 ]; then
-    echo "[SUCCESS] Package integrity verified. No tampering detected. Extracting the main package..."
-    sudo tar -xvf CollabAuditAI_Package.tar
-else
+if [ $? -ne 0 ]; then
     echo "[ERROR] Signature verification failed! The package may have been tampered with. Exiting..."
     exit 1
 fi
 
-# Step 9: Identify the Extracted Directory
-EXTRACTED_DIR=$(tar -tf CollabAuditAI_Package.tar | head -1 | cut -d'/' -f1)
-cd "$EXTRACTED_DIR" || { echo "[ERROR] Failed to enter extracted directory. Exiting..."; exit 1; }
+echo "[SUCCESS] Package integrity verified. Extracting main package..."
 
-# Step 10: Install dos2unix Utility
-echo "[CollabAuditAI] Updating package list and installing dos2unix..."
+# Step 8: Extract the main package inside the installation directory
+tar -xvf CollabAuditAI_Package.tar
+
+# Step 9: Check if extraction was successful
+if [ ! -d "CollabAuditAI_Package" ]; then
+    echo "[ERROR] Extraction failed! Exiting..."
+    exit 1
+fi
+
+# Step 10: Move inside the extracted package folder
+cd CollabAuditAI_Package || { echo "[ERROR] Failed to enter package directory. Exiting..."; exit 1; }
+
+# Step 11: Install dos2unix
+echo "[INFO] Installing dos2unix..."
 sudo apt update
 sudo apt install dos2unix -y
 
-# Step 11: Convert Scripts to Unix Format
+# Step 12: Convert and execute permission script
 if [ -f "grant_permissions.sh" ]; then
-    echo "[CollabAuditAI] Converting grant_permissions.sh to Unix format..."
+    echo "[INFO] Converting grant_permissions.sh to Unix format..."
     sudo dos2unix grant_permissions.sh
-else
-    echo "[WARNING] grant_permissions.sh not found! Skipping..."
-fi
-
-# Step 12: Verify Script Format
-file grant_permissions.sh
-
-# Step 13: Execute Permission Grant Script
-if [ -f "grant_permissions.sh" ]; then
-    echo "[CollabAuditAI] Executing permission grant script..."
+    echo "[INFO] Executing permission grant script..."
     sudo bash grant_permissions.sh
 else
     echo "[WARNING] grant_permissions.sh not found! Skipping..."
 fi
 
-# Step 14: Install Pre-Requisites
+# Step 13: Install Pre-Requisites
 if [ -f "ca_prereq_install.sh" ]; then
-    echo "[CollabAuditAI] Installing CollabAuditAI Pre-Requisites Software..."
+    echo "[INFO] Installing CollabAuditAI Pre-Requisites..."
     sudo bash ca_prereq_install.sh
 else
     echo "[WARNING] ca_prereq_install.sh not found! Skipping..."
 fi
 
-# Step 15: Configure .env File
+# Step 14: Configure .env file
 while true; do
     echo "[CollabAuditAI] Opening .env file for configuration..."
     sudo nano .env
@@ -109,16 +90,20 @@ while true; do
     fi
 done
 
-# Step 16: Deploy Application (Token will be asked inside deploy.sh)
-echo "[CollabAuditAI] Starting deployment..."
-echo "[CollabAuditAI] Please follow the prompts in deploy.sh for the next steps."
-sudo ./deploy.sh
+# Step 15: Deploy Application
+if [ -f "deploy.sh" ]; then
+    echo "[INFO] Starting deployment..."
+    sudo bash deploy.sh
+else
+    echo "[ERROR] deploy.sh not found! Exiting..."
+    exit 1
+fi
 
-# Step 17: Check Running Docker Containers
-echo "[CollabAuditAI] Checking running Docker containers..."
+# Step 16: Verify Running Docker Containers
+echo "[INFO] Checking running Docker containers..."
 sudo docker ps
 
-# Step 18: Final Message
+# Step 17: Final Message
 echo "[CollabAuditAI] Installation completed successfully!"
-echo "[CollabAuditAI] Please refer to the provided documentation to configure the required inbound port rules."
+echo "[CollabAuditAI] Please configure inbound port rules as per documentation."
 echo "[CollabAuditAI] Once configured, you can access the CollabAuditAI application."
