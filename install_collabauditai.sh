@@ -121,19 +121,19 @@ sudo apt update || error_exit "Failed to update package list"
 sudo apt install dos2unix -y || error_exit "Failed to install dos2unix"
 
 # Step 12: Convert and execute permission script
-if [ -f "grant_permissions.sh" ]; then
+if [ -f "ca_grant_permissions.sh" ]; then
     echo ""
-    echo "🔄 [INFO] Converting grant_permissions.sh to Unix format..."
+    echo "🔄 [INFO] Converting ca_grant_permissions.sh to Unix format..."
     echo ""
-    sudo dos2unix grant_permissions.sh || error_exit "Failed to convert grant_permissions.sh"
+    sudo dos2unix ca_grant_permissions.sh || error_exit "Failed to convert ca_grant_permissions.sh"
     
     echo ""
     echo "🚀 [INFO] Executing permission grant script..."
     echo ""
-    sudo bash grant_permissions.sh || error_exit "Failed to execute grant_permissions.sh"
+    sudo bash ca_grant_permissions.sh || error_exit "Failed to execute ca_grant_permissions.sh"
 else
     echo ""
-    echo "⚠️ [WARNING] grant_permissions.sh not found! Skipping..."
+    echo "⚠️ [WARNING] ca_grant_permissions.sh not found! Skipping..."
     echo ""
 fi
 
@@ -177,5 +177,3 @@ echo "🎉=================================================================="
 echo "🌍 [CollabAuditAI] Once configured, you can access the CollabAuditAI application."
 echo "🎉=================================================================="
 echo ""
-
-
