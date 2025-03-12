@@ -1,6 +1,18 @@
 #!/bin/bash
 
+set -e  # Stop script execution if any command fails
+
 INSTALL_DIR="/usr/local/src/CollabAuditAI"
+
+# Function to handle errors
+error_exit() {
+    echo ""
+    echo "⛔=================================================================="
+    echo "❌ [ERROR] $1. Exiting..."
+    echo "⛔=================================================================="
+    echo ""
+    exit 1
+}
 
 # Step 1: Create installation directory
 echo ""
@@ -9,8 +21,8 @@ echo "📂 [CollabAuditAI] Creating installation directory at $INSTALL_DIR..."
 echo "🚀=================================================================="
 echo ""
 
-sudo mkdir -p "$INSTALL_DIR"
-cd "$INSTALL_DIR" || { echo "❌ [ERROR] Failed to enter installation directory. Exiting..."; exit 1; }
+sudo mkdir -p "$INSTALL_DIR" || error_exit "Failed to create installation directory"
+cd "$INSTALL_DIR" || error_exit "Failed to enter installation directory"
 
 # Step 2: Get Package ID from User (with 3 attempts)
 attempt=0
@@ -36,12 +48,7 @@ while [[ $attempt -lt $max_attempts ]]; do
 done
 
 if [[ -z "$PACKAGE_ID" ]]; then
-    echo ""
-    echo "⛔=================================================================="
-    echo "❌ [ERROR] Maximum attempts reached. Exiting..."
-    echo "⛔=================================================================="
-    echo ""
-    exit 1
+    error_exit "Maximum attempts reached for package ID"
 fi
 
 # Step 3: Download the package inside the installation directory
@@ -51,14 +58,11 @@ echo "⬇️ [INFO] Downloading package to $INSTALL_DIR..."
 echo "🌍=================================================================="
 echo ""
 
-wget --no-check-certificate "https://drive.google.com/uc?export=download&id=$PACKAGE_ID" -O CollabAuditAI_Signature.tar
+wget --no-check-certificate "https://drive.google.com/uc?export=download&id=$PACKAGE_ID" -O CollabAuditAI_Signature.tar || error_exit "Package download failed"
 
 # Step 4: Verify if package was downloaded
 if [ ! -f "CollabAuditAI_Signature.tar" ]; then
-    echo ""
-    echo "❌ [ERROR] Package download failed. Exiting..."
-    echo ""
-    exit 1
+    error_exit "Package file missing after download"
 fi
 
 # Step 5: Extract the downloaded TAR file
@@ -68,14 +72,11 @@ echo "🛠️ [INFO] Extracting package..."
 echo "📦=================================================================="
 echo ""
 
-tar -xvf CollabAuditAI_Signature.tar
+tar -xvf CollabAuditAI_Signature.tar || error_exit "Failed to extract package"
 
 # Step 6: Check for required verification files
 if [[ ! -f "CollabAuditAI_Package.tar" || ! -f "CollabAuditAI_Package.tar.sig" || ! -f "public_key.pem" ]]; then
-    echo ""
-    echo "❌ [ERROR] Missing verification files. Exiting..."
-    echo ""
-    exit 1
+    error_exit "Missing verification files"
 fi
 
 # Step 7: Verify the integrity of the package
@@ -85,14 +86,7 @@ echo "🔎 [INFO] Verifying package integrity..."
 echo "🔒=================================================================="
 echo ""
 
-openssl dgst -sha256 -verify public_key.pem -signature CollabAuditAI_Package.tar.sig CollabAuditAI_Package.tar
-
-if [ $? -ne 0 ]; then
-    echo ""
-    echo "❌ [ERROR] Signature verification failed! The package may have been tampered with. Exiting..."
-    echo ""
-    exit 1
-fi
+openssl dgst -sha256 -verify public_key.pem -signature CollabAuditAI_Package.tar.sig CollabAuditAI_Package.tar || error_exit "Signature verification failed"
 
 echo ""
 echo "✅=================================================================="
@@ -106,18 +100,15 @@ echo ""
 echo "📂 [INFO] Extracting the main package..."
 echo ""
 
-tar -xvf CollabAuditAI_Package.tar
+tar -xvf CollabAuditAI_Package.tar || error_exit "Failed to extract main package"
 
 # Step 9: Check if extraction was successful
 if [ ! -d "CollabAuditAI_Package" ]; then
-    echo ""
-    echo "❌ [ERROR] Extraction failed! Exiting..."
-    echo ""
-    exit 1
+    error_exit "Main package extraction failed"
 fi
 
 # Step 10: Move inside the extracted package folder
-cd CollabAuditAI_Package || { echo "❌ [ERROR] Failed to enter package directory. Exiting..."; exit 1; }
+cd CollabAuditAI_Package || error_exit "Failed to enter package directory"
 
 # Step 11: Install dos2unix
 echo ""
@@ -126,19 +117,20 @@ echo "🔧 [INFO] Installing dos2unix..."
 echo "📦=================================================================="
 echo ""
 
-sudo apt update
-sudo apt install dos2unix -y
+sudo apt update || error_exit "Failed to update package list"
+sudo apt install dos2unix -y || error_exit "Failed to install dos2unix"
 
 # Step 12: Convert and execute permission script
 if [ -f "grant_permissions.sh" ]; then
     echo ""
     echo "🔄 [INFO] Converting grant_permissions.sh to Unix format..."
     echo ""
-    sudo dos2unix grant_permissions.sh
+    sudo dos2unix grant_permissions.sh || error_exit "Failed to convert grant_permissions.sh"
+    
     echo ""
     echo "🚀 [INFO] Executing permission grant script..."
     echo ""
-    sudo bash grant_permissions.sh
+    sudo bash grant_permissions.sh || error_exit "Failed to execute grant_permissions.sh"
 else
     echo ""
     echo "⚠️ [WARNING] grant_permissions.sh not found! Skipping..."
@@ -150,11 +142,9 @@ if [ -f "ca_prereq_install.sh" ]; then
     echo ""
     echo "🔧 [INFO] Installing CollabAuditAI Pre-Requisites..."
     echo ""
-    sudo bash ca_prereq_install.sh
+    sudo bash ca_prereq_install.sh || error_exit "Pre-requisite installation failed"
 else
-    echo ""
-    echo "⚠️ [WARNING] ca_prereq_install.sh not found! Skipping..."
-    echo ""
+    error_exit "ca_prereq_install.sh not found"
 fi
 
 # Step 14: Deploy Application
@@ -162,12 +152,9 @@ if [ -f "ca_deploy.sh" ]; then
     echo ""
     echo "🚀 [INFO] Starting deployment..."
     echo ""
-    sudo bash ca_deploy.sh
+    sudo bash ca_deploy.sh || error_exit "Deployment failed"
 else
-    echo ""
-    echo "❌ [ERROR] ca_deploy.sh not found! Exiting..."
-    echo ""
-    exit 1
+    error_exit "ca_deploy.sh not found"
 fi
 
 # Step 15: Wait before verifying running Docker containers
@@ -178,7 +165,7 @@ echo "📋 [INFO] Checking running Docker containers..."
 echo "🔍=================================================================="
 echo ""
 
-sudo docker ps
+sudo docker ps || error_exit "Failed to check running Docker containers"
 
 # Step 16: Final Message
 echo ""
@@ -190,4 +177,5 @@ echo "🎉=================================================================="
 echo "🌍 [CollabAuditAI] Once configured, you can access the CollabAuditAI application."
 echo "🎉=================================================================="
 echo ""
+
 
