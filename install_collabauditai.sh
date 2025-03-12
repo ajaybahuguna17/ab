@@ -35,7 +35,6 @@ while [[ $attempt -lt $max_attempts ]]; do
     echo ""
 done
 
-# If max attempts are reached, exit the script
 if [[ -z "$PACKAGE_ID" ]]; then
     echo ""
     echo "=================================================================="
@@ -100,7 +99,7 @@ echo "=================================================================="
 echo "[SUCCESS] Package integrity verified. Extracting main package..."
 echo "=================================================================="
 echo ""
-sleep 5  
+sleep 5
 
 # Step 8: Extract the main package
 echo ""
@@ -131,21 +130,18 @@ sudo apt update
 sudo apt install dos2unix -y
 
 # Step 12: Convert and execute permission script
-if [ -f "ca_grant_permissions.sh" ]; then
+if [ -f "grant_permissions.sh" ]; then
     echo ""
-    echo "[INFO] Converting ca_grant_permissions.sh to Unix format..."
+    echo "[INFO] Converting grant_permissions.sh to Unix format..."
     echo ""
-
-    sudo dos2unix ca_grant_permissions.sh
-
+    sudo dos2unix grant_permissions.sh
     echo ""
     echo "[INFO] Executing permission grant script..."
     echo ""
-
-    sudo bash ca_grant_permissions.sh
+    sudo bash grant_permissions.sh
 else
     echo ""
-    echo "[WARNING] ca_grant_permissions.sh not found! Skipping..."
+    echo "[WARNING] grant_permissions.sh not found! Skipping..."
     echo ""
 fi
 
@@ -154,7 +150,6 @@ if [ -f "ca_prereq_install.sh" ]; then
     echo ""
     echo "[INFO] Installing CollabAuditAI Pre-Requisites..."
     echo ""
-
     sudo bash ca_prereq_install.sh
 else
     echo ""
@@ -162,39 +157,11 @@ else
     echo ""
 fi
 
-# Step 14: Configure .env file (Commented Out)
-: '
-while true; do
-    echo ""
-    echo "=================================================================="
-    echo "[CollabAuditAI] Opening .env file for configuration..."
-    echo "=================================================================="
-    echo ""
-
-    sudo nano .env
-
-    echo ""
-    echo "[CollabAuditAI] Confirm that you have updated the .env file (yes/no):"
-    echo ""
-
-    read -r CONFIRM_ENV
-
-    if [[ "$CONFIRM_ENV" == "yes" ]]; then
-        break
-    else
-        echo ""
-        echo "[ERROR] Please update the .env file before proceeding."
-        echo ""
-    fi
-done
-'
-
-# Step 15: Deploy Application
+# Step 14: Deploy Application
 if [ -f "ca_deploy.sh" ]; then
     echo ""
     echo "[INFO] Starting deployment..."
     echo ""
-
     sudo bash ca_deploy.sh
 else
     echo ""
@@ -203,36 +170,17 @@ else
     exit 1
 fi
 
-# Add a 5-second delay before checking containers
-echo ""
-echo "[INFO] Waiting for 5 seconds to allow containers to start..."
+# Step 15: Wait before verifying running Docker containers
 sleep 5
-
-# Step 16: Verify Running Docker Containers
 echo ""
 echo "=================================================================="
 echo "[INFO] Checking running Docker containers..."
 echo "=================================================================="
 echo ""
 
-# Fetch running containers
-running_containers=$(sudo docker ps --format "{{.Names}}")
+sudo docker ps
 
-# Define expected container names (update these based on your setup)
-EXPECTED_CONTAINERS=("collabauditai_backend" "collabauditai_frontend")
-
-for container in "${EXPECTED_CONTAINERS[@]}"; do
-    if echo "$running_containers" | grep -q "$container"; then
-        echo "[SUCCESS] Container '$container' is running."
-    else
-        echo "[ERROR] Container '$container' is NOT running!"
-        echo "         Please check logs using: sudo docker logs $container"
-        echo "         Troubleshoot by restarting: sudo docker restart $container"
-        exit 1  # Stop script if any container fails
-    fi
-done
-
-# Step 17: Final Message
+# Step 16: Final Message
 echo ""
 echo "=================================================================="
 echo "[CollabAuditAI] Installation completed successfully!"
