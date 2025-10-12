@@ -1,1152 +1,279 @@
-\# QA Server - Azure VM with Docker \& MySQL
+** QA Server - Azure VM with Docker & MySQL**
 
+This is an automated QA testing server that I set up using Terraform in Azure's Central India region. It comes pre-configured with Docker, MySQL, and has auto-shutdown enabled to keep costs down.
 
+**What You Get**
 
-Automated QA testing server provisioned with Terraform in Azure Central India region. Pre-configured with Docker, MySQL, and auto-shutdown to optimize costs.
+The server is called "qa-server" and runs on a Standard_D4s_v3 machine in Central India. It has 4 CPU cores and 8GB RAM, running Ubuntu 22.04 LTS with a 30GB Premium SSD. I've set it to automatically shut down at 9:00 PM IST every day to save money.
 
+** What's Already Installed**
 
+Everything you need for QA testing is already there: Docker and Docker Compose for containers, MySQL Server 8.0 for your database, NGINX if you need a web server, plus the usual stuff like Git, curl, wget, and vim.
 
-\##  Server Specifications
+** Ports and Security**
 
+The server has SSH on port 22, HTTP on port 80, MySQL on 3306, RDP on 3389 (if you ever need it), and Docker API on 2375 (optional). For authentication, I've disabled password login for security - you'll need to use SSH keys. The username is "azureuser" and your SSH key should be at ~/.ssh/id_rsa.pub.
 
+** Getting Started**
 
-| Component | Configuration |
-
-|-----------|---------------|
-
-| \*\*Name\*\* | qa-server |
-
-| \*\*Location\*\* | Central India |
-
-| \*\*Size\*\* | Standard\_D4s\_v3 |
-
-| \*\*vCPU\*\* | 4 cores |
-
-| \*\*RAM\*\* | 8 GB |
-
-| \*\*OS\*\* | Ubuntu 22.04 LTS |
-
-| \*\*Disk\*\* | 30 GB Premium SSD |
-
-| \*\*Auto-Shutdown\*\* | 9:00 PM IST (Daily) |
-
-
-
-\##  Pre-Installed Software
-
-
-
-\*\*Docker\*\* - Container platform
-
- \*\*Docker Compose\*\* - Multi-container orchestration  
-
- \*\*MySQL Server 8.0\*\* - Database server
-
- \*\*NGINX\*\* - Web server (for testing)
-
- \*\*Git\*\* - Version control
-
- \*\*curl, wget\*\* - Download tools
-
- \*\*vim\*\* - Text editor
-
-
-
-\##  Security \& Access
-
-
-
-\### Open Ports
-
-
-
-| Port | Service | Purpose |
-
-|------|---------|---------|
-
-| 22 | SSH | Remote server access |
-
-| 80 | HTTP | Web applications |
-
-| 3306 | MySQL | Database access |
-
-| 3389 | RDP | Remote desktop (if needed) |
-
-| 2375 | Docker | Docker API (optional) |
-
-
-
-\### Authentication
-
-\- \*\*Method\*\*: SSH Key (password authentication disabled for security)
-
-\- \*\*Username\*\*: azureuser
-
-\- \*\*SSH Key Location\*\*: `~/.ssh/id\_rsa.pub`
-
-
-
-\##  Quick Start Guide
-
-
-
-\### Prerequisites
-
-
+First, make sure you have the prerequisites installed. You'll need Azure CLI, Terraform 1.6.0, and an SSH key pair. If you don't have these, here's how to get them:
 
 ```bash
-
-\# 1. Install Azure CLI
-
+** Install Azure CLI**
 curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
 
-
-
-\# 2. Install Terraform
-
-wget https://releases.hashicorp.com/terraform/1.6.0/terraform\_1.6.0\_linux\_amd64.zip
-
-unzip terraform\_1.6.0\_linux\_amd64.zip
-
+**Install Terraform**
+wget https://releases.hashicorp.com/terraform/1.6.0/terraform_1.6.0_linux_amd64.zip
+unzip terraform_1.6.0_linux_amd64.zip
 sudo mv terraform /usr/local/bin/
 
+**Check if you have an SSH key**
+ls ~/.ssh/id_rsa.pub
 
-
-\# 3. Verify SSH key exists
-
-ls ~/.ssh/id\_rsa.pub
-
-
-
-\# If not, generate it:
-
+**If not, generate one**
 ssh-keygen -t rsa -b 4096
-
 ```
 
+## Deploying the Server
 
-
-\### Deployment Steps
-
-
+Once you have everything set up, here's how to deploy:
 
 ```bash
-
-\# Step 1: Login to Azure
-
+** Login to Azure**
 az login
+az account set --subscription "YOUR_SUBSCRIPTION_ID"
 
-az account set --subscription "YOUR\_SUBSCRIPTION\_ID"
-
-
-
-\# Step 2: Clone/Create project directory
-
+**Create your project directory**
 mkdir terraform-qa-server
-
 cd terraform-qa-server
 
+# Copy all the files (main.tf, variables.tf, outputs.tf, terraform.tfvars, 
+# cloud-init.sh, .gitignore, README.md)
 
-
-\# Copy all files:
-
-\# - main.tf
-
-\# - variables.tf
-
-\# - outputs.tf
-
-\# - terraform.tfvars
-
-\# - cloud-init.sh
-
-\# - .gitignore
-
-\# - README.md
-
-
-
-\# Step 3: Initialize Terraform
-
+# Initialize Terraform
 terraform init
 
-
-
-\# Step 4: Validate configuration
-
+# Check if everything looks good
 terraform validate
 
-
-
-\# Step 5: Preview changes
-
+# See what Terraform will create
 terraform plan
 
-
-
-\# Step 6: Deploy QA Server
-
+# Deploy it
 terraform apply
-
-\# Type 'yes' when prompted
-
-
-
-\# Wait 3-5 minutes for deployment and software installation
-
+# Type 'yes' when it asks
 ```
 
+It takes about 3-5 minutes to deploy and install everything.
 
+## After It's Deployed
 
-\### After Deployment
+When deployment finishes, you'll get output with your server's public IP, SSH command, MySQL connection string, and the auto-shutdown time. It'll also remind you where to find the MySQL root password (it's stored in /root/mysql_root_password.txt on the server).
 
+## Connecting to Your Server
 
-
-You'll see output like this:
-
-
-
-```
-
-Outputs:
-
-
-
-public\_ip\_address = "20.204.123.45"
-
-ssh\_command = "ssh azureuser@20.204.123.45"
-
-mysql\_connection = "mysql -h 20.204.123.45 -u root -p"
-
-auto\_shutdown\_time = "9:00 PM IST (Daily)"
-
-
-
-important\_info = <<EOT
-
-========================================
-
-QA SERVER SUCCESSFULLY CREATED!
-
-========================================
-
-
-
-Connect via SSH:
-
-ssh azureuser@20.204.123.45
-
-
-
-Installed Software:
-
-✓ Docker
-
-✓ MySQL Server
-
-✓ curl, wget, git
-
-
-
-MySQL Root Password: 
-
-Run this after connecting: sudo cat /root/mysql\_root\_password.txt
-
-========================================
-
-EOT
-
-```
-
-
-
-\## 🔗 Connect to Your QA Server
-
-
-
-\### SSH Connection
-
-
+Just SSH in using the command from the output. The first time you connect, it'll ask you to verify the host fingerprint - just type "yes".
 
 ```bash
-
-\# Use the SSH command from output
-
-ssh azureuser@YOUR\_PUBLIC\_IP
-
-
-
-\# First time you'll see:
-
-\# The authenticity of host 'XX.XX.XX.XX' can't be established.
-
-\# Are you sure you want to continue connecting (yes/no)? 
-
-\# Type: yes
-
-
-
-\# You're now connected! You'll see the welcome message
-
+ssh azureuser@YOUR_PUBLIC_IP
 ```
 
-
-
-\### Verify Installation
-
-
-
-After connecting, run:
-
-
+Once you're connected, verify everything installed correctly:
 
 ```bash
-
-\# Check Docker
-
+# Check Docker
 docker --version
-
 docker ps
 
-
-
-\# Check MySQL
-
+# Check MySQL
 mysql --version
-
 sudo systemctl status mysql
 
+# Get MySQL root password
+sudo cat /root/mysql_root_password.txt
 
-
-\# Get MySQL root password
-
-sudo cat /root/mysql\_root\_password.txt
-
-
-
-\# Check NGINX
-
+# Test NGINX
 curl localhost
 
-
-
-\# Read welcome message
-
+# Read the welcome message
 cat WELCOME.txt
-
 ```
 
+## Using Docker
 
-
-\##  Docker Usage Examples
-
-
+Here are some examples to get you started with Docker:
 
 ```bash
-
-\# Test Docker installation
-
+# Test if Docker works
 docker run hello-world
 
+# Run MySQL in a container (if you want a separate instance)
+docker run -d --name mysql-container \
+  -e MYSQL_ROOT_PASSWORD=mypassword \
+  -p 3307:3306 \
+  mysql:8.0
 
-
-\# Run MySQL in Docker (if needed separately)
-
-docker run -d --name mysql-container \\
-
-&nbsp; -e MYSQL\_ROOT\_PASSWORD=mypassword \\
-
-&nbsp; -p 3307:3306 \\
-
-&nbsp; mysql:8.0
-
-
-
-\# Run NGINX in Docker
-
+# Run NGINX
 docker run -d --name nginx-test -p 8080:80 nginx
 
-
-
-\# View running containers
-
+# See what's running
 docker ps
 
-
-
-\# Stop container
-
+# Stop and remove containers
 docker stop nginx-test
-
-
-
-\# Remove container
-
 docker rm nginx-test
 
-
-
-\# Docker Compose example
-
+# Using Docker Compose
 cat > docker-compose.yml <<EOF
-
 version: '3'
-
 services:
-
-&nbsp; web:
-
-&nbsp;   image: nginx
-
-&nbsp;   ports:
-
-&nbsp;     - "8080:80"
-
-&nbsp; db:
-
-&nbsp;   image: mysql:8.0
-
-&nbsp;   environment:
-
-&nbsp;     MYSQL\_ROOT\_PASSWORD: example
-
+  web:
+    image: nginx
+    ports:
+      - "8080:80"
+  db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: example
 EOF
 
-
-
 docker-compose up -d
-
 ```
 
+## Using MySQL
 
-
-\##  MySQL Usage Examples
-
-
+To work with MySQL, first get the root password and then login:
 
 ```bash
+# Get the password
+MYSQL_PASSWORD=$(sudo cat /root/mysql_root_password.txt | cut -d' ' -f4)
 
-\# Get MySQL root password
-
-MYSQL\_PASSWORD=$(sudo cat /root/mysql\_root\_password.txt | cut -d' ' -f4)
-
-
-
-\# Login to MySQL
-
+# Login
 sudo mysql -u root -p
+# Enter the password when prompted
 
-\# Enter the password from above
+# Or login directly
+sudo mysql -u root -p"${MYSQL_PASSWORD}"
 
-
-
-\# Or direct login
-
-sudo mysql -u root -p"${MYSQL\_PASSWORD}"
-
-
-
-\# Inside MySQL:
-
-CREATE DATABASE qa\_testing;
-
-USE qa\_testing;
-
-CREATE TABLE users (id INT AUTO\_INCREMENT PRIMARY KEY, name VARCHAR(100));
-
+# Once you're in MySQL
+CREATE DATABASE qa_testing;
+USE qa_testing;
+CREATE TABLE users (id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(100));
 INSERT INTO users (name) VALUES ('Test User');
-
-SELECT \* FROM users;
-
+SELECT * FROM users;
 EXIT;
 
-
-
-\# Backup database
-
-mysqldump -u root -p qa\_testing > backup.sql
-
-
-
-\# Restore database
-
-mysql -u root -p qa\_testing < backup.sql
-
+# Backup and restore
+mysqldump -u root -p qa_testing > backup.sql
+mysql -u root -p qa_testing < backup.sql
 ```
 
+## Testing the Web Server
 
+NGINX is already installed and running. Just visit http://YOUR_PUBLIC_IP in your browser, or use curl to test it from the command line.
 
-\##  Test Web Server
+## About Auto-Shutdown
 
+The server automatically shuts down at 9:00 PM IST every day. This is to save costs when you're not using it. When it shuts down, it's deallocated, so you're not charged for compute time.
 
-
-```bash
-
-\# Your VM has NGINX installed
-
-\# Visit in browser: http://YOUR\_PUBLIC\_IP
-
-
-
-\# Or use curl:
-
-curl http://YOUR\_PUBLIC\_IP
-
-```
-
-
-
-\##  Auto-Shutdown Feature
-
-
-
-\### How It Works
-
-\- \*\*Shutdown Time\*\*: 9:00 PM IST (Every day)
-
-\- \*\*Purpose\*\*: Save costs when not in use
-
-\- \*\*Status\*\*: Deallocated (not charged for compute)
-
-
-
-\### Start the VM Again
-
-
-
-\*\*Option 1: Azure Portal\*\*
-
-1\. Go to Azure Portal
-
-2\. Find "qa-server" VM
-
-3\. Click "Start"
-
-
-
-\*\*Option 2: Azure CLI\*\*
+To start it again, you have three options. You can use the Azure Portal (find the VM and click Start), use Azure CLI, or temporarily disable the schedule in Terraform.
 
 ```bash
-
+# Start with Azure CLI
 az vm start --name qa-server --resource-group rg-myproject-lowerenv
-
 ```
 
+If you want to disable auto-shutdown permanently, edit main.tf and set enabled to false in the azurerm_dev_test_global_vm_shutdown_schedule resource, then run terraform apply.
 
+## Costs
 
-\*\*Option 3: Terraform\*\*
+Let me be straight about costs. If you run this VM 24/7, you're looking at roughly 6,980 INR or 88.50 USD per month. That breaks down to about 5,500 INR for the VM, 400 INR for the SSD, 280 INR for the public IP, and up to 800 INR for bandwidth depending on usage.
+
+But here's the good news - with auto-shutdown running for 12 hours a day, you'll cut that in half to around 3,500 INR or 45 USD per month. You can also manually stop the VM when you're not using it to save even more.
 
 ```bash
-
-\# Disable auto-shutdown temporarily
-
-\# Comment out the shutdown schedule in main.tf
-
-terraform apply
-
-```
-
-
-
-\### Disable Auto-Shutdown Permanently
-
-
-
-In `main.tf`, change:
-
-```hcl
-
-resource "azurerm\_dev\_test\_global\_vm\_shutdown\_schedule" "main" {
-
-&nbsp; enabled = false  # Change to false
-
-&nbsp; # ... rest of config
-
-}
-
-```
-
-
-
-Then run:
-
-```bash
-
-terraform apply
-
-```
-
-
-
-\##  Cost Management
-
-
-
-\### Estimated Monthly Cost
-
-
-
-| Resource | Cost (INR) | Cost (USD) |
-
-|----------|------------|------------|
-
-| VM (D4s\_v3) when running | ~₹5,500 | ~$70 |
-
-| Premium SSD 30GB | ~₹400 | ~$5 |
-
-| Public IP | ~₹280 | ~$3.50 |
-
-| Bandwidth (100GB) | ~₹0-800 | ~$0-10 |
-
-| \*\*Total (if running 24/7)\*\* | \*\*~₹6,980\*\* | \*\*~$88.50\*\* |
-
-
-
-\### Cost Savings with Auto-Shutdown
-
-
-
-If VM runs 12 hours/day (auto-shutdown at 9 PM):
-
-\- \*\*Monthly Cost\*\*: ~₹3,500 ($45) - \*\*Save 50%!\*\*
-
-
-
-\### Manual Cost Control
-
-
-
-```bash
-
-\# Stop VM when not needed
-
+# Stop the VM manually
 az vm deallocate --name qa-server --resource-group rg-myproject-lowerenv
 
-
-
-\# Start when needed
-
+# Start it when you need it
 az vm start --name qa-server --resource-group rg-myproject-lowerenv
 
-
-
-\# Check VM status
-
-az vm get-instance-view --name qa-server --resource-group rg-myproject-lowerenv --query instanceView.statuses\[1]
-
+# Check if it's running
+az vm get-instance-view --name qa-server --resource-group rg-myproject-lowerenv --query instanceView.statuses[1]
 ```
 
+## Common Tasks
 
-
-\## Common Tasks
-
-
-
-\### Deploy Your Application
-
-
+**Deploying your application** is straightforward. SSH into the server, clone your repo, and either use Docker to build and run your app or use Docker Compose if you have a compose file.
 
 ```bash
-
-\# Connect to server
-
-ssh azureuser@YOUR\_PUBLIC\_IP
-
-
-
-\# Clone your application
-
+ssh azureuser@YOUR_PUBLIC_IP
 git clone https://github.com/yourusername/your-app.git
-
 cd your-app
 
-
-
-\# Using Docker
-
+# With Docker
 docker build -t myapp .
-
 docker run -d -p 8080:8080 myapp
 
-
-
-\# Using Docker Compose
-
+# With Docker Compose
 docker-compose up -d
-
 ```
 
+**Updating software** is just like any Ubuntu system. Use apt to update system packages, Docker, or MySQL.
 
+**Monitoring resources** is simple with the usual Linux tools - df for disk space, free for memory, top for CPU, systemctl for services, and netstat for network connections.
 
-\### Update Software
+**Backing up data** is important. You can dump all MySQL databases to a file, and if you want, upload it to Azure Storage for safekeeping.
 
+## When Things Go Wrong
 
+**Can't connect via SSH?** First check if the VM is running. It might have auto-shutdown or you stopped it manually. Start it back up with Azure CLI.
+
+**Docker not working?** Check the Docker service status, restart it if needed, and make sure your user is in the docker group (you might need to logout and login again).
+
+**MySQL not accessible?** Same drill - check the service, restart it, make sure it's listening on port 3306, and check the error logs if something's wrong.
+
+**Software not installed?** Look at the cloud-init logs to see what happened during installation. You can also manually run the installation script if needed.
+
+**Can't access the web server?** Check if NGINX is running, restart it, verify port 80 is open, and test it locally with curl.
+
+## Monitoring and Logs
+
+You can check your Terraform state with terraform show or terraform state list. To see specific resources or outputs, use terraform state show or terraform output.
+
+For Azure logs, use the Azure CLI to list activity logs or get VM metrics.
+
+## Making Changes
+
+**Want a different VM size?** Edit main.tf and change the size parameter, then run terraform apply.
+
+**Need more ports open?** Add security rules to the NSG in main.tf and apply the changes.
+
+## Cleaning Up
+
+When you're done with the server and want to delete everything, just run terraform destroy. It'll ask you to confirm by typing "yes". After that, you can verify everything's gone by trying to show the resource group - it should say it can't be found.
+
+## Quick Reference
+
+Here are the commands you'll use most often:
 
 ```bash
-
-\# Update system packages
-
-sudo apt update
-
-sudo apt upgrade -y
-
-
-
-\# Update Docker
-
-sudo apt install docker-ce docker-ce-cli containerd.io
-
-
-
-\# Update MySQL
-
-sudo apt install mysql-server
-
-```
-
-
-
-\### Monitor Resources
-
-
-
-```bash
-
-\# Check disk space
-
-df -h
-
-
-
-\# Check memory usage
-
-free -m
-
-
-
-\# Check CPU usage
-
-top
-
-
-
-\# Check running services
-
-sudo systemctl status docker mysql nginx
-
-
-
-\# Check network connections
-
-netstat -tulpn
-
-```
-
-
-
-\### Backup Important Data
-
-
-
-```bash
-
-\# Backup MySQL databases
-
-mysqldump -u root -p --all-databases > all\_databases\_backup.sql
-
-
-
-\# Backup to Azure Storage (optional)
-
-az storage blob upload \\
-
-&nbsp; --account-name mystorageaccount \\
-
-&nbsp; --container-name backups \\
-
-&nbsp; --name backup.sql \\
-
-&nbsp; --file all\_databases\_backup.sql
-
-```
-
-
-
-\##  Troubleshooting
-
-
-
-\### Issue: Can't connect via SSH
-
-
-
-\*\*Check VM is running:\*\*
-
-```bash
-
-az vm get-instance-view --name qa-server --resource-group rg-myproject-lowerenv --query instanceView.statuses\[1]
-
-```
-
-
-
-\*\*If stopped, start it:\*\*
-
-```bash
-
-az vm start --name qa-server --resource-group rg-myproject-lowerenv
-
-```
-
-
-
-\*\*Check NSG rules:\*\*
-
-```bash
-
-az network nsg rule list --nsg-name nsg-qaserver --resource-group rg-myproject-lowerenv --output table
-
-```
-
-
-
-\### Issue: Docker not working
-
-
-
-```bash
-
-\# Check Docker service
-
-sudo systemctl status docker
-
-
-
-\# Restart Docker
-
-sudo systemctl restart docker
-
-
-
-\# Add user to docker group (if needed)
-
-sudo usermod -aG docker $USER
-
-\# Logout and login again
-
-```
-
-
-
-\### Issue: MySQL not accessible
-
-
-
-```bash
-
-\# Check MySQL service
-
-sudo systemctl status mysql
-
-
-
-\# Restart MySQL
-
-sudo systemctl restart mysql
-
-
-
-\# Check MySQL is listening
-
-sudo netstat -tulpn | grep 3306
-
-
-
-\# Check MySQL error log
-
-sudo tail -f /var/log/mysql/error.log
-
-```
-
-
-
-\### Issue: Software not installed
-
-
-
-```bash
-
-\# Check cloud-init logs
-
-sudo cat /var/log/cloud-init-output.log
-
-
-
-\# Manually run installation
-
-sudo bash /var/lib/cloud/instance/scripts/part-001
-
-```
-
-
-
-\### Issue: Can't access web server
-
-
-
-```bash
-
-\# Check NGINX
-
-sudo systemctl status nginx
-
-
-
-\# Restart NGINX
-
-sudo systemctl restart nginx
-
-
-
-\# Check if port 80 is open
-
-sudo netstat -tulpn | grep :80
-
-
-
-\# Test locally
-
-curl localhost
-
-```
-
-
-
-\## Monitoring \& Logs
-
-
-
-\### Check Terraform State
-
-
-
-```bash
-
-\# View current state
-
-terraform show
-
-
-
-\# List all resources
-
-terraform state list
-
-
-
-\# Show specific resource
-
-terraform state show azurerm\_linux\_virtual\_machine.main
-
-
-
-\# Get outputs
-
-terraform output
-
-terraform output public\_ip\_address
-
-```
-
-
-
-\### View Azure Logs
-
-
-
-```bash
-
-\# VM activity log
-
-az monitor activity-log list --resource-group rg-myproject-lowerenv --output table
-
-
-
-\# Get VM metrics
-
-az vm list --resource-group rg-myproject-lowerenv --show-details --output table
-
-```
-
-
-
-\## Update Infrastructure
-
-
-
-\### Change VM Size
-
-
-
-Edit `main.tf`:
-
-```hcl
-
-size = "Standard\_D2s\_v3"  # Change to smaller/larger size
-
-```
-
-
-
-Apply changes:
-
-```bash
-
-terraform apply
-
-```
-
-
-
-\### Add More Ports
-
-
-
-Edit NSG rules in `main.tf`:
-
-```hcl
-
-security\_rule {
-
-&nbsp; name                       = "Allow-Custom-Port"
-
-&nbsp; priority                   = 1006
-
-&nbsp; direction                  = "Inbound"
-
-&nbsp; access                     = "Allow"
-
-&nbsp; protocol                   = "Tcp"
-
-&nbsp; source\_port\_range          = "\*"
-
-&nbsp; destination\_port\_range     = "8080"
-
-&nbsp; source\_address\_prefix      = "\*"
-
-&nbsp; destination\_address\_prefix = "\*"
-
-}
-
-```
-
-
-
-Apply:
-
-```bash
-
-terraform apply
-
-```
-
-
-
-\## Cleanup
-
-
-
-\### Destroy All Resources
-
-
-
-\*\*Warning\*\*: This will delete everything!
-
-
-
-```bash
-
-terraform destroy
-
-\# Type 'yes' to confirm
-
-```
-
-
-
-\### Verify Deletion
-
-
-
-```bash
-
-az group show --name rg-myproject-lowerenv
-
-\# Should return: Resource group 'rg-myproject-lowerenv' could not be found
-
-```
-
-
-
-\## Useful Commands Reference
-
-
-
-\### Terraform Commands
-
-```bash
-
-terraform init          # Initialize project
-
-terraform validate      # Validate syntax
-
-terraform fmt          # Format code
-
-terraform plan         # Preview changes
-
-terraform apply        # Apply changes
-
+# Terraform basics
+terraform init          # Start a new project
+terraform validate      # Check for errors
+terraform plan         # See what will change
+terraform apply        # Make it happen
 terraform destroy      # Delete everything
+terraform output       # Show the outputs
 
-terraform output       # Show outputs
-
-terraform state list   # List resources
-
-```
-
-
-
-\### Azure CLI Commands
-
-```bash
-
-az vm list --output table                    # List all VMs
-
+# Managing the VM
+az vm list --output table
 az vm start --name qa-server --resource-group rg-myproject-lowerenv
-
 az vm stop --name qa-server --resource-group rg-myproject-lowerenv
-
 az vm deallocate --name qa-server --resource-group rg-myproject-lowerenv
 
-az vm show --name qa-server --resource-group rg-myproject-lowerenv --show-details
-
+# File transfers
+ssh azureuser@YOUR_IP
+scp file.txt azureuser@YOUR_IP:/home/azureuser/
+scp azureuser@YOUR_IP:/path/to/file.txt ./
 ```
-
-
-
-\### SSH \& SCP Commands
-
-```bash
-
-ssh azureuser@YOUR\_IP                        # Connect to VM
-
-scp file.txt azureuser@YOUR\_IP:/home/azureuser/  # Upload file
-
-scp azureuser@YOUR\_IP:/path/to/file.txt ./   # Download file
-
-```
-
-
-
-
-
