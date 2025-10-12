@@ -6,7 +6,7 @@ Automated QA testing server provisioned with Terraform in Azure Central India re
 
 
 
-\## 📋 Server Specifications
+\##  Server Specifications
 
 
 
@@ -32,27 +32,27 @@ Automated QA testing server provisioned with Terraform in Azure Central India re
 
 
 
-\## 🎯 Pre-Installed Software
+\##  Pre-Installed Software
 
 
 
-✅ \*\*Docker\*\* - Container platform
+\*\*Docker\*\* - Container platform
 
-✅ \*\*Docker Compose\*\* - Multi-container orchestration  
+ \*\*Docker Compose\*\* - Multi-container orchestration  
 
-✅ \*\*MySQL Server 8.0\*\* - Database server
+ \*\*MySQL Server 8.0\*\* - Database server
 
-✅ \*\*NGINX\*\* - Web server (for testing)
+ \*\*NGINX\*\* - Web server (for testing)
 
-✅ \*\*Git\*\* - Version control
+ \*\*Git\*\* - Version control
 
-✅ \*\*curl, wget\*\* - Download tools
+ \*\*curl, wget\*\* - Download tools
 
-✅ \*\*vim\*\* - Text editor
+ \*\*vim\*\* - Text editor
 
 
 
-\## 🔐 Security \& Access
+\##  Security \& Access
 
 
 
@@ -86,7 +86,7 @@ Automated QA testing server provisioned with Terraform in Azure Central India re
 
 
 
-\## 🚀 Quick Start Guide
+\##  Quick Start Guide
 
 
 
@@ -338,7 +338,7 @@ cat WELCOME.txt
 
 
 
-\## 🐳 Docker Usage Examples
+\##  Docker Usage Examples
 
 
 
@@ -420,7 +420,7 @@ docker-compose up -d
 
 
 
-\## 🗄️ MySQL Usage Examples
+\##  MySQL Usage Examples
 
 
 
@@ -476,7 +476,7 @@ mysql -u root -p qa\_testing < backup.sql
 
 
 
-\## 🌐 Test Web Server
+\##  Test Web Server
 
 
 
@@ -496,7 +496,7 @@ curl http://YOUR\_PUBLIC\_IP
 
 
 
-\## ⏰ Auto-Shutdown Feature
+\##  Auto-Shutdown Feature
 
 
 
@@ -578,7 +578,7 @@ terraform apply
 
 
 
-\## 💰 Cost Management
+\##  Cost Management
 
 
 
@@ -638,7 +638,7 @@ az vm get-instance-view --name qa-server --resource-group rg-myproject-lowerenv 
 
 
 
-\## 🛠️ Common Tasks
+\## Common Tasks
 
 
 
@@ -772,7 +772,7 @@ az storage blob upload \\
 
 
 
-\## 🐛 Troubleshooting
+\##  Troubleshooting
 
 
 
@@ -922,7 +922,7 @@ curl localhost
 
 
 
-\## 📊 Monitoring \& Logs
+\## Monitoring \& Logs
 
 
 
@@ -980,7 +980,7 @@ az vm list --resource-group rg-myproject-lowerenv --show-details --output table
 
 
 
-\## 🔄 Update Infrastructure
+\## Update Infrastructure
 
 
 
@@ -1052,7 +1052,7 @@ terraform apply
 
 
 
-\## 🧹 Cleanup
+\## Cleanup
 
 
 
@@ -1088,7 +1088,7 @@ az group show --name rg-myproject-lowerenv
 
 
 
-\## 📚 Useful Commands Reference
+\## Useful Commands Reference
 
 
 
