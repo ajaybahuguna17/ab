@@ -22,6 +22,8 @@ lg.typeusername();
 lg.typepassword();
 lg.typesubmit();
 Thread.sleep(5000);
+		Thread.sleep(1000);// new changes
+		
 Homepage hp = new Homepage(driver);
 	hp.clickoinc();
 	
